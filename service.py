@@ -113,7 +113,7 @@ async def validation_exception_handler(request, exc):
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request, exc):
     return templates.TemplateResponse('404.html', status_code=404,context={'request': request})
-
+"""
 if __name__ == "__main__":
-    uvicorn.run("service:app", reload=True, host='localhost', port=5052, workers=1)
+    uvicorn.run("service:app", reload=True, host='localhost', port=5052, workers=1)"""
 
