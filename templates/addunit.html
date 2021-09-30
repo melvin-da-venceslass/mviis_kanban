@@ -50,7 +50,7 @@
         input= $("#partkey").val();
         $("#partkey").val("")
         $.ajax({
-        url: "http://localhost:5052/add",
+        url: "https://mviis-kanban-app.herokuapp.com/add",
         data:JSON.stringify({"partname":input}),
         type: "POST",
         dataType: "json",
