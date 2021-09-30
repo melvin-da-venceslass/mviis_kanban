@@ -1,6 +1,5 @@
 gunicorn
 fastapi
-json
 time
 pydantic
 typing
