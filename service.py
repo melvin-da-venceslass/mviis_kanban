@@ -1,3 +1,5 @@
+from os import curdir
+from sqlite3.dbapi2 import Cursor
 import uvicorn
 from typing import Optional
 from fastapi import FastAPI,Request,HTTPException
@@ -43,77 +45,127 @@ layer_4 = errorClass
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/production", response_class=HTMLResponse)
 def home(request: Request):
-    return templates.TemplateResponse('inde.html', context={'request': request,"url":URL})
+    return templates.TemplateResponse('production.html', context={'request': request,"url":URL})
+
+@app.get("/delivery", response_class=HTMLResponse)
+def home(request: Request):
+    return templates.TemplateResponse('delivery.html', context={'request': request,"url":URL})
 
 @app.get("/warehouse", response_class=HTMLResponse)
 def home(request: Request):
-    return templates.TemplateResponse('addunit.html', context={'request': request,"url":URL})
+    return templates.TemplateResponse('dispatch.html', context={'request': request,"url":URL})
 
-@app.get("/production", response_class=HTMLResponse)
+@app.get("/inventory", response_class=HTMLResponse)
 def home(request: Request):
-    return templates.TemplateResponse('subunit.html', context={'request': request,"url":URL}) 
+    return templates.TemplateResponse('inventory.html', context={'request': request,"url":URL}) 
 
 @app.get("/data" )
 def data(request: Request):
     dats = []
-    query =  'select * from main order by qty asc'
+    query = """SELECT partname,COUNT(CASE WHEN stage IN ("TRANSIST")   THEN 1 ELSE NULL END) AS trans, 
+       COUNT(CASE WHEN stage IN ("PRODUCTION") THEN 1 ELSE NULL END) AS prod,
+	   COUNT(CASE WHEN stage IN ("WAREHOUSE") THEN 1 ELSE NULL END) AS wh,
+	   COUNT(CASE WHEN stage IN ("INVENTORY") THEN 1 ELSE NULL END) AS inv FROM main GROUP BY partname;"""
     cursor = conn.execute(query)
     for row in cursor:
-        dats.append(dict(partname=row[0],qty=row[1]))
-
+        dats.append(dict(part=row[0],tqty=row[1],pqty=row[2]))
+    
     return dats
 
 
 class addreq(BaseModel):
-    partname:str
-
+    uniqname:str
 class subreq(BaseModel):
     partname:str
 
-@app.post("/add" )
+@app.post("/dispatch" )
 def add(request: Request,data:addreq):
-    part = data.partname.upper()
-    query =  'select qty from main WHERE partname="'+part+'" order by qty asc'
-    cursor = conn.execute(query)
-    check = cursor.fetchall()
-    if len(check)==0:
-        query =  'INSERT INTO main(partname,qty) VALUES("'+part+'",1)'
+    try:
+        uniq  = data.uniqname.upper()
+        query =  f'SELECT * from main WHERE unique_id="{uniq}" AND stage="INVENTORY" '
         cursor = conn.execute(query)
-        conn.commit()
-    else:
-        query =  'select qty from main WHERE partname="'+part+'" order by qty asc'
-        cursor = conn.execute(query)
-        for row in cursor:
-            exqty = row[0]
-        
-        nwqty = exqty+1
-        query =  'update main set qty="'+str(nwqty)+'" WHERE partname="'+part+'"'
-        cursor = conn.execute(query)
-        conn.commit()
-    return {"success":"Part Loaded"}
+        check = cursor.fetchall()
+        if len(check)>0:
+            query = f'UPDATE main set stage="TRANSIST" where unique_id="{uniq}"'
+            cursor = conn.execute(query)
+            conn.commit()
+            return {"status":"Dispatch Success!"}
+        else:
+            query =  f'SELECT stage from main WHERE unique_id="{uniq}"'
+            cursor = conn.execute(query)
+            for each in cursor:
+                location = each[0]
+            return {"status":f"Dispatch Failed #location: {location}"}
+    except:
+        return{"status":"Invalid Operation"}
 
-@app.post("/subb")
-def subb(request: Request,data:subreq):
-    part = data.partname.upper()
-    query =  'select qty from main WHERE partname="'+part+'" order by qty asc'
-    cursor = conn.execute(query)
-    check = cursor.fetchall()
-    if len(check)==0:
-        return {"success":"No Part Found"}
+@app.post("/deliver" )
+def add(request: Request,data:addreq):
+    try:
+        uniq  = data.uniqname.upper()
+        query =  f'SELECT * from main WHERE unique_id="{uniq}" AND stage="TRANSIST" '
+        cursor = conn.execute(query)
+        check = cursor.fetchall()
+        if len(check)>0:
+            query = f'UPDATE main set stage="PRODUCTION" where unique_id="{uniq}"'
+            cursor = conn.execute(query)
+            conn.commit()
+            return {"status":"Delivery Success!"}
+        else:
+            query =  f'SELECT stage from main WHERE unique_id="{uniq}"'
+            cursor = conn.execute(query)
+            for each in cursor:
+                location = each[0]
+            return {"status":f"Delivery Failed #location: {location}"}
+    except:
+        return{"status":"Invalid Operation"}
 
-    else:
-        query =  'select qty from main WHERE partname="'+part+'" order by qty asc'
+
+@app.post("/consume" )
+def add(request: Request,data:addreq):
+    try:
+        uniq  = data.uniqname.upper()
+        query =  f'SELECT * from main WHERE unique_id="{uniq}" AND stage="PRODUCTION" '
         cursor = conn.execute(query)
-        for row in cursor:
-            exqty = row[0]
-        
-        nwqty = exqty-1
-        query =  'update main set qty="'+str(nwqty)+'" WHERE partname="'+part+'"'
+        check = cursor.fetchall()
+        if len(check)>0:
+            query = f'UPDATE main set stage="CONSUMED" where unique_id="{uniq}"'
+            cursor = conn.execute(query)
+            conn.commit()
+            return {"status":"Consumption Success!"}
+        else:
+            query =  f'SELECT stage from main WHERE unique_id="{uniq}"'
+            cursor = conn.execute(query)
+            for each in cursor:
+                location = each[0]
+            return {"status":f"Consumption Failed #location: {location}"}
+    except:
+        return{"status":"Invalid Operation"}
+
+
+@app.post("/store" )
+def add(request: Request,data:addreq):
+    try:
+        uniq  = data.uniqname.upper()
+        query =  f'SELECT * from main WHERE unique_id="{uniq}" '
         cursor = conn.execute(query)
-        conn.commit()
-    return {"success":"Part Consumed"}
+        check = cursor.fetchall()
+        if len(check)>0:
+            query = f'UPDATE main set stage="INVENTORY" where unique_id="{uniq}"'
+            cursor = conn.execute(query)
+            conn.commit()
+            return {"status":"Stored to Inventory Success!"}
+        else:
+            query =  f'SELECT stage from main WHERE unique_id="{uniq}"'
+            cursor = conn.execute(query)
+            for each in cursor:
+                location = each[0]
+            return {"status":f"Invalid UID"}
+    except:
+        return{"status":"Invalid Operation"}
+
 
 
 

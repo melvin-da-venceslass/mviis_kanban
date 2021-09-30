@@ -1,0 +1,138 @@
+<html>
+
+<head>
+    <title>Kanban Monitor</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.9">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/1/1e/RPC-JP_Logo.png">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@700&display=swap" rel="stylesheet">
+
+
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Rubik', cursive;
+        }
+    </style>
+</head>
+
+
+<body class="bg-dark">
+    <div class="container-fluid">
+        <div class=row>
+            <div class="col-12 col-md-12 text-light" style="padding-top:1rem;">
+                <h1 class=text-center>Kanban Monitor</h1>
+            </div>
+        </div>
+        <div class="container">
+            <h1 class="text-light text-center" style="margin-top:10">Delivery Console</h1>
+            <div class="form-group">
+                <label class="text-light" for="exampleInputPassword1">UID</label>
+                <input type="text" autofocus class="form-control" id="partkey" placeholder="Scan the Unique ID">
+            </div>
+
+        </div>
+        <div class="container" id=tabulations>
+            <p>tst</p>
+        </div>
+
+    </div>
+</body>
+<script>
+
+    var header = `<div class="row bg-primary">
+                <div class="col-6 col-md-6 text-light border  border-light"
+                    style="padding-top:1rem;padding-bottom:0.5rem;">
+                    <h3 class=text-left><b>Partname</b></h3>
+                </div>
+                <div class="col-2 col-md-2 text-light border border-light"
+                    style="padding-top:1rem;padding-bottom:0.5rem;">
+                    <h5 class=text-center><b>WIP<br>(Production)</b></h5>
+                </div>
+                <div class="col-2 col-md-2 text-light border border-light"
+                    style="padding-top:1rem;padding-bottom:0.5rem;">
+                    <h5 class=text-center><b>WIP<br>(In Transist)</b></h5>
+                </div>
+                <div class="col-2 col-md-2 text-light border border-light"
+                    style="padding-top:1rem;padding-bottom:0.5rem;">
+                    <h5 class=text-center>Status</b></h5>
+                </div>
+            </div>`
+
+   var bodier ="";
+    var builder = function (idx, each) {
+        var color = "";
+        each = parseInt(idx['pqty'])
+        if (each <= 10) {
+            color  = "bg-danger"
+            status = "critical"
+        }
+        else if (each > 10 && each <= 20) {
+            color = "bg-warning"
+            status = "Warning"
+        }
+
+        else if (each > 20 && each <= 30) {
+            color = "bg-success"
+            status = "Normal"
+        }
+        bodier += `<div class="row">
+                                <div class="col-6 col-md-6 text-light border border-light" style="padding-top:1rem;padding-bottom:0.5rem;">
+                                <h5 class=text-left>`+ idx['part'] + `</h5>
+                            </div>
+                            <div class="col-2 col-md-2 text-light border border-light" style="padding-top:1rem;padding-bottom:0.5rem;">
+                                <h5 class=text-center>`+ idx['pqty'] + `</h5>
+                            </div>
+                            <div class="col-2 col-md-2 text-light border border-light" style="padding-top:1rem;padding-bottom:0.5rem;">
+                                <h5 class=text-center>`+ idx['tqty'] + `</h5>
+                            </div>
+                            <div class="col-2 col-md-2 text-light border border-light `+color+`" style="padding-top:1rem;padding-bottom:0.5rem;">
+                                <h5 class=text-center>`+status+`</h5>
+                            </div>
+                        </div>`
+    }
+    var tabulate = function () {
+        $.ajax({
+            url: "{{url}}/data",
+            type: "GET",
+            dataType: "json",
+            contentType: "application/json",
+            success: function (data) {
+                bodier = "";
+                data.forEach(builder)
+                $("#tabulations").html(header+bodier);
+            }
+        })
+    }
+    tabulate();
+    var ref = setInterval(tabulate, 5000)
+
+    $("#partkey").on('keypress', function (e) {
+        if (e.which == 13) {
+            input = $("#partkey").val();
+            $("#partkey").val("")
+            $.ajax({
+                url: "{{url}}/deliver",
+                data: JSON.stringify({"uniqname": input }),
+                type: "POST",
+                dataType: "json",
+                contentType: "application/json",
+                success: function (data) {
+                    alert(data.status)
+                }
+            })
+        }
+    });
+
+
+</script>
+
+</html>
