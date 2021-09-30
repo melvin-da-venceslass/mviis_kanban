@@ -7,3 +7,4 @@ starlette==0.14.2
 db-sqlite3
 uvicorn==0.15.0
 typing
+aiofiles==0.7.0
