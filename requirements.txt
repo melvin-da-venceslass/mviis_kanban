@@ -1,7 +1,9 @@
-gunicorn
-fastapi
-time
-pydantic
+gunicorn==20.1.0
+fastapi==0.68.0
+pydantic==1.7.4
+unicorn==1.0.3
+typing-utils==0.1.0
+starlette==0.14.2
+db-sqlite3
+uvicorn==0.15.0
 typing
-starlette
-sqlite3
