@@ -8,3 +8,4 @@ db-sqlite3
 uvicorn==0.15.0
 typing
 aiofiles==0.7.0
+Jinja2
