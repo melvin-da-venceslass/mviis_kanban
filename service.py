@@ -14,7 +14,8 @@ import json
 import sqlite3
 conn = sqlite3.connect('test.db',check_same_thread=False)
 app = FastAPI(title='KANBAN_APP', version="v1.0", description="A MVIIS_MAKE", docs_url=None, redoc_url=None)
-
+#URL = "http://localhost:5052"
+URL = "https://mviis-kanban-app.herokuapp.com"
 
 origins = [
     "https://localhost", "http://localhost",
@@ -44,15 +45,15 @@ templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
-    return templates.TemplateResponse('inde.html', context={'request': request})
+    return templates.TemplateResponse('inde.html', context={'request': request,"url":URL})
 
 @app.get("/warehouse", response_class=HTMLResponse)
 def home(request: Request):
-    return templates.TemplateResponse('addunit.html', context={'request': request})
+    return templates.TemplateResponse('addunit.html', context={'request': request,"url":URL})
 
 @app.get("/production", response_class=HTMLResponse)
 def home(request: Request):
-    return templates.TemplateResponse('subunit.html', context={'request': request}) 
+    return templates.TemplateResponse('subunit.html', context={'request': request,"url":URL}) 
 
 @app.get("/data" )
 def data(request: Request):
@@ -73,7 +74,7 @@ class subreq(BaseModel):
 
 @app.post("/add" )
 def add(request: Request,data:addreq):
-    part = data.partname
+    part = data.partname.upper()
     query =  'select qty from main WHERE partname="'+part+'" order by qty asc'
     cursor = conn.execute(query)
     check = cursor.fetchall()
@@ -82,26 +83,43 @@ def add(request: Request,data:addreq):
         cursor = conn.execute(query)
         conn.commit()
     else:
+        query =  'select qty from main WHERE partname="'+part+'" order by qty asc'
+        cursor = conn.execute(query)
         for row in cursor:
             exqty = row[0]
-        nwqty = exqty +1
+        
+        nwqty = exqty+1
         query =  'update main set qty="'+str(nwqty)+'" WHERE partname="'+part+'"'
         cursor = conn.execute(query)
         conn.commit()
-    return {"success":True}
+    return {"success":"Part Loaded"}
 
 @app.post("/subb")
 def subb(request: Request,data:subreq):
-    part = data.partname
+    part = data.partname.upper()
     query =  'select qty from main WHERE partname="'+part+'" order by qty asc'
     cursor = conn.execute(query)
-    for row in cursor:
-        exqty = row[0]
-    nwqty = exqty-1
-    query =  'update main set qty="'+str(nwqty)+'" WHERE partname="'+part+'"'
-    cursor = conn.execute(query)
-    conn.commit()
-    return {"success":True}
+    check = cursor.fetchall()
+    if len(check)==0:
+        return {"success":"No Part Found"}
+
+    else:
+        query =  'select qty from main WHERE partname="'+part+'" order by qty asc'
+        cursor = conn.execute(query)
+        for row in cursor:
+            exqty = row[0]
+        
+        nwqty = exqty-1
+        query =  'update main set qty="'+str(nwqty)+'" WHERE partname="'+part+'"'
+        cursor = conn.execute(query)
+        conn.commit()
+    return {"success":"Part Consumed"}
+
+
+
+
+
+ 
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
@@ -113,7 +131,7 @@ async def validation_exception_handler(request, exc):
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request, exc):
     return templates.TemplateResponse('404.html', status_code=404,context={'request': request})
-"""
+
 if __name__ == "__main__":
-    uvicorn.run("service:app", reload=True, host='localhost', port=5052, workers=1)"""
+    uvicorn.run("service:app", reload=True, host='localhost', port=5052, workers=1)
 
