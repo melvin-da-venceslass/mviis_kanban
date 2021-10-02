@@ -72,7 +72,8 @@ def data(request: Request):
     query = """SELECT part_master.partname,part_master.min,part_master.max,COUNT(CASE WHEN stage IN ("TRANSIST")   THEN 1 ELSE NULL END) AS trans, 
        COUNT(CASE WHEN stage IN ("PRODUCTION") THEN 1 ELSE NULL END) AS prod,
 	   COUNT(CASE WHEN stage IN ("WAREHOUSE") THEN 1 ELSE NULL END) AS wh,
-	   COUNT(CASE WHEN stage IN ("INVENTORY") THEN 1 ELSE NULL END) AS inv FROM main INNER JOIN part_master on main.partname=part_master.id GROUP BY  part_master.partname"""
+	   COUNT(CASE WHEN stage IN ("INVENTORY") THEN 1 ELSE NULL END) AS inv
+       FROM main INNER JOIN part_master on main.partname=part_master.id GROUP BY  part_master.partname ORDER BY prod asc"""
     cursor = conn.execute(query)
     for row in cursor:
         dats.append(dict(part=row[0],min=row[1],max=row[2],tqty=row[3],pqty=row[4]))
