@@ -45,6 +45,11 @@ layer_4 = errorClass
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+
+@app.get("/", response_class=HTMLResponse)
+def home(request: Request):
+    return templates.TemplateResponse('home.html', context={'request': request,"url":URL})
+
 @app.get("/production", response_class=HTMLResponse)
 def home(request: Request):
     return templates.TemplateResponse('production.html', context={'request': request,"url":URL})
@@ -64,13 +69,14 @@ def home(request: Request):
 @app.get("/data" )
 def data(request: Request):
     dats = []
-    query = """SELECT partname,COUNT(CASE WHEN stage IN ("TRANSIST")   THEN 1 ELSE NULL END) AS trans, 
+    query = """SELECT part_master.partname,part_master.min,part_master.max,COUNT(CASE WHEN stage IN ("TRANSIST")   THEN 1 ELSE NULL END) AS trans, 
        COUNT(CASE WHEN stage IN ("PRODUCTION") THEN 1 ELSE NULL END) AS prod,
 	   COUNT(CASE WHEN stage IN ("WAREHOUSE") THEN 1 ELSE NULL END) AS wh,
-	   COUNT(CASE WHEN stage IN ("INVENTORY") THEN 1 ELSE NULL END) AS inv FROM main GROUP BY partname;"""
+	   COUNT(CASE WHEN stage IN ("INVENTORY") THEN 1 ELSE NULL END) AS inv FROM main INNER JOIN part_master on main.partname=part_master.id GROUP BY  part_master.partname"""
     cursor = conn.execute(query)
     for row in cursor:
-        dats.append(dict(part=row[0],tqty=row[1],pqty=row[2]))
+        dats.append(dict(part=row[0],min=row[1],max=row[2],tqty=row[3],pqty=row[4]))
+
     
     return dats
 

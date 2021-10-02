@@ -25,22 +25,22 @@
 </head>
 
 
-<body class="bg-dark">
+<body>
     <div class="container-fluid">
         <div class=row>
-            <div class="col-12 col-md-12 text-light" style="padding-top:1rem;">
+            <div class="col-12 col-md-12" style="padding-top:1rem;">
                 <h1 class=text-center>Kanban Monitor</h1>
             </div>
         </div>
         <div class="container">
-            <h1 class="text-light text-center" style="margin-top:10">Delivery Console</h1>
+            <h1 class="text-center" style="margin-top:10">Delivery Console</h1>
             <div class="form-group">
-                <label class="text-light" for="exampleInputPassword1">UID</label>
+                <label class=for="exampleInputPassword1">UID</label>
                 <input type="text" autofocus class="form-control" id="partkey" placeholder="Scan the Unique ID">
             </div>
 
         </div>
-        <div class="container" id=tabulations>
+        <div class="container" id=tabulations style="margin-bottom: 2rem;;">
             <p>tst</p>
         </div>
 
@@ -48,54 +48,94 @@
 </body>
 <script>
 
-    var header = `<div class="row bg-primary">
-                <div class="col-6 col-md-6 text-light border  border-light"
+    var header = `<div class="row bg-secondary">
+                <div class="col-3 col-md-3 text-light border  border-light"
                     style="padding-top:1rem;padding-bottom:0.5rem;">
-                    <h3 class=text-left><b>Partname</b></h3>
+                    <h5 class=text-left><b>MPN</b></h5>
                 </div>
-                <div class="col-2 col-md-2 text-light border border-light"
+                <div class="col-1 col-md-1 text-light border border-light"
                     style="padding-top:1rem;padding-bottom:0.5rem;">
-                    <h5 class=text-center><b>WIP<br>(Production)</b></h5>
+                    <h5 class=text-center><b>Min</b></h5>
                 </div>
-                <div class="col-2 col-md-2 text-light border border-light"
+                <div class="col-1 col-md-1 text-light border border-light"
                     style="padding-top:1rem;padding-bottom:0.5rem;">
-                    <h5 class=text-center><b>WIP<br>(In Transist)</b></h5>
+                    <h5 class=text-center><b>Max</b></h5>
                 </div>
-                <div class="col-2 col-md-2 text-light border border-light"
+                <div class="col-3 col-md-3 text-light border border-light"
                     style="padding-top:1rem;padding-bottom:0.5rem;">
-                    <h5 class=text-center>Status</b></h5>
+                    <h5 class=text-center><b>Progress Bar</b></h5>
+                </div>
+                <div class="col-1 col-md-1 text-light border border-light"
+                    style="padding-top:1rem;padding-bottom:0.5rem;">
+                    <h5 class="text-center"><b>Prod. Available Qty</b></h5>
+                </div>
+                <div class="col-1 col-md-1 text-light border border-light"
+                    style="padding-top:1rem;padding-bottom:0.5rem;">
+                    <h5 class=text-center><b>W_house Pending Qty</b></h4>
+                </div>
+                <div class="col-1 col-md-1 text-light border border-light"
+                    style="padding-top:1rem;padding-bottom:0.5rem;">
+                    <h5 class=text-center><b>Status</b></h4>
+                </div>
+                <div class="col-1 col-md-1 text-light border border-light"
+                    style="padding-top:1rem;padding-bottom:0.5rem;">
+                    <h5 class=text-center><b>KANBAN Loading Pending</b></h5>
                 </div>
             </div>`
 
-   var bodier ="";
+    var bodier = "";
     var builder = function (idx, each) {
+        
+        var percentage = (parseInt(idx['pqty']) / parseInt(idx['max']))*100
+        var critical   = (parseInt(idx['min']) / parseInt(idx['max']))*100
+        var wh_pending = (idx['max']-(idx['pqty']+idx['tqty']))
+        var kb_pending = idx['tqty']
+        console.log(idx['part'],percentage,critical,idx['tqty'],wh_pending,)
         var color = "";
         each = parseInt(idx['pqty'])
-        if (each <= 10) {
-            color  = "bg-danger"
+
+        if (percentage <= critical) {
+            color = "bg-danger"
             status = "critical"
         }
-        else if (each > 10 && each <= 20) {
+        else if (percentage > critical && percentage <= 75 ) {
             color = "bg-warning"
             status = "Warning"
         }
 
-        else if (each > 20 && each <= 30) {
+        else if (percentage >= 75) {
             color = "bg-success"
             status = "Normal"
         }
+
+       
         bodier += `<div class="row">
-                                <div class="col-6 col-md-6 text-light border border-light" style="padding-top:1rem;padding-bottom:0.5rem;">
+                                <div class="col-3 col-md-3 text-dark border border-muted" style="padding-top:1rem;padding-bottom:0.5rem;">
                                 <h5 class=text-left>`+ idx['part'] + `</h5>
                             </div>
-                            <div class="col-2 col-md-2 text-light border border-light" style="padding-top:1rem;padding-bottom:0.5rem;">
+                            <div class="col-1 col-md-1 text-dark border border-muted" style="padding-top:1rem;padding-bottom:0.5rem;">
+                                <h5 class=text-center>`+ idx['min'] + `</h5>
+                            </div>
+                            <div class="col-1 col-md-1 text-dark border border-muted" style="padding-top:1rem;padding-bottom:0.5rem;">
+                                <h5 class=text-center>`+ idx['max'] + `</h5>
+                            </div>
+                            <div class="col-3 col-md-3 text-dark border border-muted" style="padding-top:1rem;padding-bottom:0.5rem;">
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated `+color+`" role="progressbar" style="width: `+percentage+`%" aria-valuenow="`+percentage+`" aria-valuemin="0" aria-valuemax="`+ idx['max'] + `""></div>
+                                </div>
+                                                                                                              
+                            </div>
+                            <div class="col-1 col-md-1 text-dark border border-muted" style="padding-top:1rem;padding-bottom:0.5rem;">
                                 <h5 class=text-center>`+ idx['pqty'] + `</h5>
                             </div>
-                            <div class="col-2 col-md-2 text-light border border-light" style="padding-top:1rem;padding-bottom:0.5rem;">
-                                <h5 class=text-center>`+ idx['tqty'] + `</h5>
+                            <div class="col-1 col-md-1 text-dark border border-muted" style="padding-top:1rem;padding-bottom:0.5rem;">
+                                <h5 class=text-center>`+ wh_pending + `</h5>
                             </div>
-                            <div class="col-2 col-md-2 text-light border border-light `+color+`" style="padding-top:1rem;padding-bottom:0.5rem;">
-                                <h5 class=text-center>`+status+`</h5>
+                            <div class="col-1 col-md-1 text-dark border border-muted `+ color + `" style="padding-top:1rem;padding-bottom:0.5rem;">
+                                <h5 class=text-center>`+ status + `</h5>
+                            </div>
+                            <div class="col-1 col-md-1 text-dark border border-muted" style="padding-top:1rem;padding-bottom:0.5rem;">
+                                <h5 class=text-center>`+ idx['tqty'] + `</h5>
                             </div>
                         </div>`
     }
@@ -108,7 +148,7 @@
             success: function (data) {
                 bodier = "";
                 data.forEach(builder)
-                $("#tabulations").html(header+bodier);
+                $("#tabulations").html(header + bodier);
             }
         })
     }
@@ -121,7 +161,7 @@
             $("#partkey").val("")
             $.ajax({
                 url: "{{url}}/deliver",
-                data: JSON.stringify({"uniqname": input }),
+                data: JSON.stringify({ "uniqname": input }),
                 type: "POST",
                 dataType: "json",
                 contentType: "application/json",
