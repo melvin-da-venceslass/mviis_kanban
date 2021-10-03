@@ -1,0 +1,127 @@
+<html>
+
+<head>
+    <title>Kanban Monitor</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.9">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/1/1e/RPC-JP_Logo.png">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@700&display=swap" rel="stylesheet">
+
+
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Rubik', cursive;
+        }
+    </style>
+</head>
+
+<body class=>
+    <div class="container-fluid">
+        <div class=row>
+            <div class="col-12 col-md-12" style="padding-top:1rem;">
+                <h1 class=text-center>Kanban Min Max Control Panel</h1>
+            </div>
+        </div>
+        <div class="container" id=tabulations>
+            
+        </div>
+
+    </div>
+</body>
+<script>
+
+    var header = `<table class="table border bordr-dark" >
+                <thead>
+                  <tr scope="row">
+                    <th scope="col">#</th>
+                    <th scope="col">PART NAME</th>
+                    <th scope="col">Minimum Kanban</th>
+                    <th scope="col">Maimum Kanban</th>
+                    <th scope="col">Update</th>
+                  </tr>
+                </thead>
+                <tbody>`
+    var bodier = ""
+    var footer = `</tbody> </table>`           
+    var builder = function(each,indx){
+
+      bodier +=  `<tr>
+                    <th scope="row">`+indx+`</th>
+                    <td>`+each['part']+`</td>
+                    <td ><input id="`+each['part']+`_min" type="text" value="`+each['min']+`"></td>
+                    <td ><input  id="`+each['part']+`_max"type="text" value="`+each['max']+`"></td>
+                    <td ><button onclick="javascript:updateRow('`+each['part']+`')"class="btn btn-primary" type="button">Update</button></td>
+                  </tr>`
+
+    
+
+    }
+
+    var min;
+    var max;
+    var json_;
+    var updateRow = function(key){
+      min   = $("#"+key+"_min").val();
+      max   = $("#"+key+"_max").val();
+      json_ = JSON.stringify({"partname":key,"minimum":min,"maximum":max})
+      $.ajax({
+        url: "{{url}}/update",
+            type: "post",
+            dataType: "json",
+            data:json_,
+            contentType: "application/json",
+            success: function (data) {
+                alert(data.status)
+            }
+      })
+
+    }
+    var tabulate = function () {
+        $.ajax({
+            url: "{{url}}/partmanager",
+            type: "GET",
+            dataType: "json",
+            contentType: "application/json",
+            success: function (data) {
+                bodier = "";
+                data.forEach(builder)
+                $("#tabulations").html(header + bodier + footer);
+            }
+        })
+    }
+
+    tabulate();
+
+
+
+
+    $("#partkey").on('keypress',function(e){
+    if(e.which == 13) {
+        input= $("#partkey").val();
+        $("#partkey").val("")
+        $.ajax({
+        url: "{{url}}/add",
+        data:JSON.stringify({"partname":input}),
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json",
+        success: function (data) {
+            alert(data.success)
+        }
+    })
+    }
+});
+    
+
+</script>
+
+</html>

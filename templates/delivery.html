@@ -48,40 +48,20 @@
 </body>
 <script>
 
-    var header = `<div class="row bg-secondary">
-                <div class="col-3 col-sm-3 col-md-3 text-light border  border-light"
-                    style="padding-top:1rem;padding-bottom:0.5rem;">
-                    <h5 class=text-left><b>MPN</b></h5>
-                </div>
-                <div class="col-1 col-sm-1 col-md-1 text-light border border-light"
-                    style="padding-top:1rem;padding-bottom:0.5rem;">
-                    <h5 class=text-center><b>Min</b></h5>
-                </div>
-                <div class="col-1 col-sm-1 col-md-1 text-light border border-light"
-                    style="padding-top:1rem;padding-bottom:0.5rem;">
-                    <h5 class=text-center><b>Max</b></h5>
-                </div>
-                <div class="col-3 col-sm-3 col-md-3 text-light border border-light"
-                    style="padding-top:1rem;padding-bottom:0.5rem;">
-                    <h5 class=text-center><b>Progress Bar</b></h5>
-                </div>
-                <div class="col-1 col-sm-1 col-md-1 text-light border border-light"
-                    style="padding-top:1rem;padding-bottom:0.5rem;">
-                    <h5 class="text-center"><b>Prod. Available Qty</b></h5>
-                </div>
-                <div class="col-1 col-sm-1 col-md-1 text-light border border-light"
-                    style="padding-top:1rem;padding-bottom:0.5rem;">
-                    <h5 class=text-center><b>W_house Pending Qty</b></h4>
-                </div>
-                <div class="col-1 col-sm-1 col-md-1 text-light border border-light"
-                    style="padding-top:1rem;padding-bottom:0.5rem;">
-                    <h5 class=text-center><b>Status</b></h4>
-                </div>
-                <div class="col-1 col-sm-1 col-md-1 text-light border border-light"
-                    style="padding-top:1rem;padding-bottom:0.5rem;">
-                    <h5 class=text-center><b>KANBAN Loading Pending</b></h5>
-                </div>
-            </div>`
+var header = `<table class="table border bordr-dark" >
+                <thead>
+                  <tr scope="row" class="text-center">
+                    <th scope="col">MPN #</th>
+                    <th scope="col">Min Qty #</th>
+                    <th scope="col">Max Qty #Kanban</th>
+                    <th scope="col">Progress Indicator</th>
+                    <th scope="col">Balance Qty #</th>
+                    <th scope="col">Kanban Loading Pending  Qty #</th>
+                    <th scope="col">Status Indicator</th>
+                    
+                  </tr>
+                </thead>
+                <tbody>`
 
     var bodier = "";
     var builder = function (idx, each) {
@@ -107,37 +87,28 @@
             color = "bg-success"
             status = "Normal"
         }
+        
+        if (kb_pending==0){
+            scolor = "bg-success"
+        }
+        else{
+            scolor = "bg-warning"
+        }
 
-       
-        bodier += `<div class="row">
-                                <div class="col-3 col-sm-3 col-md-3 text-dark border border-muted" style="padding-top:1rem;padding-bottom:0.5rem;">
-                                <h5 class=text-left>`+ idx['part'] + `</h5>
-                            </div>
-                            <div class="col-1 col-sm-1 col-md-1 text-dark border border-muted" style="padding-top:1rem;padding-bottom:0.5rem;">
-                                <h5 class=text-center>`+ idx['min'] + `</h5>
-                            </div>
-                            <div class="col-1 col-sm-1 col-md-1 text-dark border border-muted" style="padding-top:1rem;padding-bottom:0.5rem;">
-                                <h5 class=text-center>`+ idx['max'] + `</h5>
-                            </div>
-                            <div class="col-3 col-sm-3 col-md-3 text-dark border border-muted" style="padding-top:1rem;padding-bottom:0.5rem;">
-                                <div class="progress">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated `+color+`" role="progressbar" style="width: `+percentage+`%" aria-valuenow="`+percentage+`" aria-valuemin="0" aria-valuemax="`+ idx['max'] + `""></div>
-                                </div>
-                                                                                                              
-                            </div>
-                            <div class="col-1 col-sm-1 col-md-1 text-dark border border-muted" style="padding-top:1rem;padding-bottom:0.5rem;">
-                                <h5 class=text-center>`+ idx['pqty'] + `</h5>
-                            </div>
-                            <div class="col-1 col-sm-1 col-md-1 text-dark border border-muted" style="padding-top:1rem;padding-bottom:0.5rem;">
-                                <h5 class=text-center>`+ wh_pending + `</h5>
-                            </div>
-                            <div class="col-1 col-sm-1 col-md-1 text-dark border border-muted `+ color + `" style="padding-top:1rem;padding-bottom:0.5rem;">
-                                <h5 class=text-center>`+ status + `</h5>
-                            </div>
-                            <div class="col-1 col-sm-1 col-md-1 text-dark border border-muted" style="padding-top:1rem;padding-bottom:0.5rem;">
-                                <h5 class=text-center>`+ idx['tqty'] + `</h5>
-                            </div>
-                        </div>`
+        bodier += `
+                <tr class="text-center">
+                    <th scope="row">`+ idx['part'] + `</th>
+                    <td>`+idx['min']+`</td>
+                    <td>`+idx['max']+`</td>
+                    <td>
+                        <div class="progress">
+                             <div class="progress-bar progress-bar-striped progress-bar-animated `+color+`" role="progressbar" style="width: `+percentage+`%" aria-valuenow="`+percentage+`" aria-valuemin="0" aria-valuemax="`+ idx['max'] + `""></div>
+                        </div>
+                    </td>
+                    <td>`+idx['pqty']+`</td>
+                    <td>`+kb_pending+`</td>
+                    <td><div style="width: 1rem;margin-left:3rem;height: 1rem;" class="`+scolor+` rounded-circle"></div></td>
+                  </tr>`
     }
     var tabulate = function () {
         $.ajax({

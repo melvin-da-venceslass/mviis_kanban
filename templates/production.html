@@ -47,34 +47,21 @@
     </div>
 </body>
 <script>
+     var header = `<table class="table border bordr-dark" >
+                <thead>
+                  <tr scope="row"  class="text-center">
+                    <th scope="col">MPN #</th>
+                    <th scope="col">Min Qty #</th>
+                    <th scope="col">Max Qty #Kanban</th>
+                    <th scope="col">Progress Indicator</th>
+                    <th scope="col">Balance Qty #</th>
+                    <th scope="col">Status Indicator</th>
+                  </tr>
+                </thead>
+                <tbody>`
 
-    var header = `<div class="row bg-secondary">
-                <div class="col-3 col-sm-3 col-md-3 text-light border  border-light"
-                    style="padding-top:1rem;padding-bottom:0.5rem;">
-                    <h4 class=text-left><b>MPN</b></h4>
-                </div>
-                <div class="col-1 col-sm-1 col-md-1 text-light border border-light"
-                    style="padding-top:1rem;padding-bottom:0.5rem;">
-                    <h4 class=text-center><b>Min</b></h4>
-                </div>
-                <div class="col-1 col-sm-1 col-md-1 text-light border border-light"
-                    style="padding-top:1rem;padding-bottom:0.5rem;">
-                    <h4 class=text-center><b>Max</b></h4>
-                </div>
-                <div class="col-3 col-sm-3 col-md-3 text-light border border-light"
-                    style="padding-top:1rem;padding-bottom:0.5rem;">
-                    <h4 class=text-center><b>Progress Bar</b></h4>
-                </div>
-                <div class="col-2 col-sm-2 col-md-2 text-light border border-light"
-                    style="padding-top:1rem;padding-bottom:0.5rem;">
-                    <h4 class=text-center><b>Balance<br>Qty</b></h4>
-                </div>
-                <div class="col-2 col-sm-2 col-md-2 text-light border border-light"
-                    style="padding-top:1rem;padding-bottom:0.5rem;">
-                    <h4 class=text-center><b>Status</b></h4>
-                </div>
-            </div>`
-
+   
+    var status = "";
     var bodier = "";
     var builder = function (idx, each) {
         
@@ -82,46 +69,33 @@
         var critical    = (parseInt(idx['min']) / parseInt(idx['max']))*100
         console.log(idx['part'],percentage,critical)
         var color = "";
-        each = parseInt(idx['pqty'])
+        each  = parseInt(idx['pqty'])
 
-        if (percentage <= critical) {
+        if (parseInt(idx['pqty']) <= parseInt(idx['min'])) {
             color = "bg-danger"
             status = "critical"
         }
-        else if (percentage > critical && percentage <= 75 ) {
-            color = "bg-warning"
-            status = "Warning"
-        }
 
-        else if (percentage >= 75) {
+        else if (parseInt(idx['pqty']) > parseInt(idx['min'])) {
             color = "bg-success"
             status = "Normal"
         }
 
        
-        bodier += `<div class="row">
-                                <div class="col-3 col-sm-3 col-md-3 text-dark border border-muted" style="padding-top:1rem;padding-bottom:0.5rem;">
-                                <h5 class=text-left>`+ idx['part'] + `</h5>
-                            </div>
-                            <div class="col-1 col-sm-1 col-md-1 text-dark border border-muted" style="padding-top:1rem;padding-bottom:0.5rem;">
-                                <h5 class=text-center>`+ idx['min'] + `</h5>
-                            </div>
-                            <div class="col-1 col-sm-1 col-md-1 text-dark border border-muted" style="padding-top:1rem;padding-bottom:0.5rem;">
-                                <h5 class=text-center>`+ idx['max'] + `</h5>
-                            </div>
-                            <div class="col-3 col-sm-3 col-md-3 text-dark border border-muted" style="padding-top:1rem;padding-bottom:0.5rem;">
-                                <div class="progress">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated `+color+`" role="progressbar" style="width: `+percentage+`%" aria-valuenow="`+percentage+`" aria-valuemin="0" aria-valuemax="`+ idx['max'] + `""></div>
-                                </div>
-                                                                                                              
-                            </div>
-                            <div class="col-2 col-sm-2 col-md-2 text-dark border border-muted" style="padding-top:1rem;padding-bottom:0.5rem;">
-                                <h5 class=text-center>`+ idx['pqty'] + `</h5>
-                            </div>
-                            <div class="col-2 col-sm-2 col-md-2 text-dark border border-muted `+ color + `" style="padding-top:1rem;padding-bottom:0.5rem;">
-                                <h5 class=text-center>`+ status + `</h5>
-                            </div>
-                        </div>`
+        bodier += `
+                <tr class="text-center">
+                    <th scope="row">`+ idx['part'] + `</th>
+                    <td>`+idx['min']+`</td>
+                    <td>`+idx['max']+`</td>
+                    <td>
+                        <div class="progress">
+                             <div class="progress-bar progress-bar-striped progress-bar-animated `+color+`" role="progressbar" style="width: `+percentage+`%" aria-valuenow="`+percentage+`" aria-valuemin="0" aria-valuemax="`+ idx['max'] + `""></div>
+                        </div>
+                    </td>
+                    <td>`+idx['pqty']+`</td>
+                    <td><div style="width: 1rem;  height: 1rem;margin-left:5rem;" class="`+color+` rounded-circle  "></div></td>
+                  </tr>`
+          
     }
     var tabulate = function () {
         $.ajax({

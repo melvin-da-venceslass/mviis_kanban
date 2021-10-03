@@ -16,8 +16,8 @@ import json
 import sqlite3
 conn = sqlite3.connect('test.db',check_same_thread=False)
 app = FastAPI(title='KANBAN_APP', version="v1.0", description="A MVIIS_MAKE", docs_url=None, redoc_url=None)
-#URL = "http://localhost:5052"
-URL = "https://mviis-kanban-app.herokuapp.com"
+URL = "http://localhost:5052"
+#URL = "https://mviis-kanban-app.herokuapp.com"
 
 origins = [
     "https://localhost", "http://localhost",
@@ -66,6 +66,12 @@ def home(request: Request):
 def home(request: Request):
     return templates.TemplateResponse('inventory.html', context={'request': request,"url":URL}) 
 
+@app.get("/controller", response_class=HTMLResponse)
+def home(request: Request):
+    return templates.TemplateResponse('kanban_control.html', context={'request': request,"url":URL}) 
+
+
+
 @app.get("/data" )
 def data(request: Request):
     dats = []
@@ -86,6 +92,30 @@ class addreq(BaseModel):
     uniqname:str
 class subreq(BaseModel):
     partname:str
+
+class updateobj(BaseModel):
+    partname:str
+    minimum:int
+    maximum:int
+
+@app.get("/partmanager")
+def manage(request:Request):
+    datas = []
+    query = "SELECT * from part_master WHERE 1 ORDER BY id asc"
+    cursor = conn.execute(query)
+    for row in cursor:
+        datas.append(dict(part=row[1],min=row[2],max=row[3]))
+    
+    return datas
+
+
+@app.post("/update")
+def updater(request:Request,data:updateobj):
+
+    query  = f'UPDATE part_master set min="{data.minimum}",max="{data.maximum}" WHERE partname="{data.partname}"'
+    cursor = conn.execute(query)
+    conn.commit()
+    return{"status": "Update Success"} 
 
 @app.post("/dispatch" )
 def add(request: Request,data:addreq):
