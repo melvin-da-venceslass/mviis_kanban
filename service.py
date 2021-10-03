@@ -16,8 +16,8 @@ import json
 import sqlite3
 conn = sqlite3.connect('test.db',check_same_thread=False)
 app = FastAPI(title='KANBAN_APP', version="v1.0", description="A MVIIS_MAKE", docs_url=None, redoc_url=None)
-#URL = "http://localhost:5052"
-URL = "https://mviis-kanban-app.herokuapp.com"
+URL = "http://localhost:5052"
+#URL = "https://mviis-kanban-app.herokuapp.com"
 
 origins = [
     "https://localhost", "http://localhost",

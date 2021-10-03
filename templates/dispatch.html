@@ -74,16 +74,12 @@ var header = `<table class="table border bordr-dark" >
         var color = "";
         each = parseInt(idx['pqty'])
 
-        if (percentage <= critical) {
+        if (parseInt(idx['pqty']) <= parseInt(idx['min'])) {
             color = "bg-danger"
             status = "critical"
         }
-        else if (percentage > critical && percentage <= 75 ) {
-            color = "bg-warning"
-            status = "Warning"
-        }
 
-        else if (percentage >= 75) {
+        else if (parseInt(idx['pqty']) > parseInt(idx['min'])) {
             color = "bg-success"
             status = "Normal"
         }
