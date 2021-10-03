@@ -121,20 +121,33 @@ def updater(request:Request,data:updateobj):
 def add(request: Request,data:addreq):
     try:
         uniq  = data.uniqname.upper()
-        query =  f'SELECT * from main WHERE unique_id="{uniq}" AND stage="INVENTORY" '
+        query = f'''SELECT part_master.partname,part_master.max,
+                    count(CASE WHEN stage IN ("TRANSIST") THEN 1 ELSE NULL END) AS wh 
+                    from main JOIN part_master on main.partname=part_master.id
+                    where part_master.partname=(select partname from part_master where id=(SELECT partname from main where unique_id="{uniq}"))	
+                    GROUP BY  part_master.partname 
+                    ORDER BY part_master.partname asc'''
+
         cursor = conn.execute(query)
         check = cursor.fetchall()
-        if len(check)>0:
-            query = f'UPDATE main set stage="TRANSIST" where unique_id="{uniq}"'
-            cursor = conn.execute(query)
-            conn.commit()
-            return {"status":"Dispatch Success!"}
+        if (check[0][1]-check[0][2]<1):
+            return {"status":f"Dispatch Failed #Dispatch Limit Reached!"}
+
         else:
-            query =  f'SELECT stage from main WHERE unique_id="{uniq}"'
+            query =  f'SELECT * from main WHERE unique_id="{uniq}" AND stage="INVENTORY" '
             cursor = conn.execute(query)
-            for each in cursor:
-                location = each[0]
-            return {"status":f"Dispatch Failed #location: {location}"}
+            check = cursor.fetchall()
+            if len(check)>0:
+                query = f'UPDATE main set stage="TRANSIST" where unique_id="{uniq}"'
+                cursor = conn.execute(query)
+                conn.commit()
+                return {"status":"Dispatch Success!"}
+            else:
+                query =  f'SELECT stage from main WHERE unique_id="{uniq}"'
+                cursor = conn.execute(query)
+                for each in cursor:
+                    location = each[0]
+                return {"status":f"Dispatch Failed #location: {location}"}
     except:
         return{"status":"Invalid Operation"}
 
